@@ -1,13 +1,15 @@
-# app.py
 import yfinance as yf
 import pandas as pd
 import streamlit as st
 
+# Set Streamlit page layout and title
 st.set_page_config(page_title="LSE Volume Surge Scanner", layout="wide")
 st.title("📊 LSE Volume Surge Swing Trade Scanner")
 
-tickers = ['HSBA.L', 'BARC.L', 'BP.L', 'GSK.L', 'LLOY.L', 'VOD.L']  # Add more LSE tickers here
+# 🔍 LSE ticker symbols — expand this list as needed
+tickers = ['HSBA.L', 'BARC.L', 'BP.L', 'GSK.L', 'LLOY.L', 'VOD.L']
 
+# 📈 Volume spike scanner function
 def check_volume_spikes(tickers):
     results = []
 
@@ -28,15 +30,24 @@ def check_volume_spikes(tickers):
                     'Volume Surge %': round((today['Volume'] / avg_volume) * 100, 2),
                     'Close': round(today['Close'], 2)
                 })
-        except:
+        except Exception as e:
+            st.warning(f"⚠️ Error loading {ticker}: {e}")
             continue
 
-    return pd.DataFrame(results).sort_values(by='Volume Surge %', ascending=False)
+    # ✅ Sort only if results exist
+    df = pd.DataFrame(results)
+    if not df.empty:
+        df = df.sort_values(by='Volume Surge %', ascending=False)
 
+    return df
+
+# 🚀 Run the scanner
 df = check_volume_spikes(tickers)
 
+# 📊 Display results
 if df.empty:
-    st.info("No volume surges detected today. Try again later.")
+    st.info("📭 No volume surges detected today. Try again tomorrow.")
 else:
     st.success(f"📈 Found {len(df)} volume surge(s) today")
     st.dataframe(df, use_container_width=True)
+
